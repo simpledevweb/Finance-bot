@@ -50,25 +50,30 @@ let isLocalServerConnected = false;
 
 function loadDatabase() {
     try {
-        const saved = localStorage.getItem(DB_KEY);
-        if (saved) {
-            return JSON.parse(saved);
+        if (typeof localStorage !== 'undefined') {
+            const saved = localStorage.getItem(DB_KEY);
+            if (saved) {
+                return JSON.parse(saved);
+            }
         }
     } catch (e) {
         console.error('Error reading localStorage', e);
     }
-    saveDatabase(defaultDatabase);
+    if (typeof localStorage !== 'undefined') {
+        saveDatabase(defaultDatabase);
+    }
     return JSON.parse(JSON.stringify(defaultDatabase));
 }
 
 function getApiEndpoint() {
-    if (window.location.protocol === 'file:') {
+    if (typeof window !== 'undefined' && window.location && window.location.protocol === 'file:') {
         return 'http://localhost:1000/api/db';
     }
     return '/api/db';
 }
 
 async function syncWithLocalFileServer() {
+    if (typeof fetch === 'undefined') return;
     try {
         const endpoint = getApiEndpoint();
         const res = await fetch(endpoint);
@@ -79,7 +84,9 @@ async function syncWithLocalFileServer() {
             // If local server database.json already has data, load it
             if (data && Array.isArray(data.accounts) && (data.accounts.length > 0 || data.transactions.length > 0)) {
                 db = data;
-                localStorage.setItem(DB_KEY, JSON.stringify(db));
+                if (typeof localStorage !== 'undefined') {
+                    localStorage.setItem(DB_KEY, JSON.stringify(db));
+                }
             } else if (db.accounts.length > 0 || db.transactions.length > 0) {
                 // If database.json was empty but browser has existing data, auto-save to database.json!
                 await fetch(endpoint, {
@@ -107,7 +114,7 @@ async function syncWithLocalFileServer() {
 let fileHandle = null;
 
 async function linkLocalDatabaseFile() {
-    if (!('showOpenFilePicker' in window)) {
+    if (typeof window === 'undefined' || !('showOpenFilePicker' in window)) {
         showToast('start.bat fayli orqali ishga tushiring');
         return;
     }
@@ -137,24 +144,28 @@ async function linkLocalDatabaseFile() {
 function saveDatabase(dataToSave) {
     const data = dataToSave || db;
     // 1. Save to browser cache
-    localStorage.setItem(DB_KEY, JSON.stringify(data));
+    if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(DB_KEY, JSON.stringify(data));
+    }
 
     // 2. Real-time write directly to ./database.json via local server
-    const endpoint = getApiEndpoint();
-    fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data, null, 2)
-    }).then(res => {
-        if (res.ok && !isLocalServerConnected) {
-            isLocalServerConnected = true;
-            const statusPill = document.querySelector('.user-status-pill');
-            if (statusPill) {
-                statusPill.textContent = '● database.json (Faylda Faol)';
-                statusPill.style.color = 'var(--success)';
+    if (typeof fetch !== 'undefined') {
+        const endpoint = getApiEndpoint();
+        fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data, null, 2)
+        }).then(res => {
+            if (res.ok && !isLocalServerConnected) {
+                isLocalServerConnected = true;
+                const statusPill = document.querySelector('.user-status-pill');
+                if (statusPill) {
+                    statusPill.textContent = '● database.json (Faylda Faol)';
+                    statusPill.style.color = 'var(--success)';
+                }
             }
-        }
-    }).catch(() => {});
+        }).catch(() => {});
+    }
 
     // 3. Real-time write directly to connected file handle (File System API)
     if (fileHandle) {
