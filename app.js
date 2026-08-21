@@ -236,31 +236,34 @@ function closeConfirmModal() {
 }
 
 // ==================== INITIALIZATION ====================
-document.addEventListener('DOMContentLoaded', () => {
-    // PIN check
-    if (db.settings.pinEnabled) {
-        document.getElementById('pinLockScreen').style.display = 'flex';
-    }
-
-    // Clean up any old service worker caches to prevent outdated mobile views
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(registrations => {
-            for (let registration of registrations) {
-                registration.unregister();
-            }
-        });
-        if ('caches' in window) {
-            caches.keys().then(names => {
-                for (let name of names) caches.delete(name);
-            });
+if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+        // PIN check
+        if (db.settings.pinEnabled) {
+            const pinScreen = document.getElementById('pinLockScreen');
+            if (pinScreen) pinScreen.style.display = 'flex';
         }
-    }
 
-    updateUserSettingsUI();
-    renderAll();
-    resetTxDateInput();
-    syncWithLocalFileServer();
-});
+        // Clean up any old service worker caches to prevent outdated mobile views
+        if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+            if (typeof window !== 'undefined' && 'caches' in window) {
+                caches.keys().then(names => {
+                    for (let name of names) caches.delete(name);
+                });
+            }
+        }
+
+        updateUserSettingsUI();
+        renderAll();
+        resetTxDateInput();
+        syncWithLocalFileServer();
+    });
+}
 
 function updateUserSettingsUI() {
     const name = db.settings.userName || 'Alpamis Ibraymov';
