@@ -1448,6 +1448,17 @@ function handleAuthLogin(event) {
     const isPassMatch = (enteredPass === correctPass);
 
     if (isPhoneOrUserMatch && isPassMatch) {
+        // Trigger Google Chrome Save Password Manager prompt
+        if (typeof window !== 'undefined' && 'PasswordCredential' in window && navigator.credentials) {
+            try {
+                const form = document.getElementById('authLoginForm');
+                if (form) {
+                    const cred = new PasswordCredential(form);
+                    navigator.credentials.store(cred).catch(() => {});
+                }
+            } catch (e) {}
+        }
+
         document.getElementById('authLockScreen').style.display = 'none';
         if (phoneInput) phoneInput.value = '';
         passInput.value = '';

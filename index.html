@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f172a">
-    <link rel="stylesheet" href="style.css?v=13.0">
+    <link rel="stylesheet" href="style.css?v=14.0">
 </head>
 <body class="web-dashboard-body">
 
@@ -25,15 +25,15 @@
             <h2 class="lock-title">FinancePro Kirish</h2>
             <p class="lock-prompt">Tizimga kirish uchun hisobingiz ma'lumotlarini kiriting</p>
             
-            <form id="authLoginForm" onsubmit="handleAuthLogin(event)" class="auth-form">
+            <form id="authLoginForm" method="POST" action="javascript:void(0);" onsubmit="handleAuthLogin(event)" class="auth-form" name="financeLoginForm">
                 <div class="auth-input-group">
                     <span class="auth-input-icon">📱</span>
-                    <input type="text" id="authPhoneInput" placeholder="Telefon raqam yoki Login" required autocomplete="username">
+                    <input type="text" id="authPhoneInput" name="username" placeholder="Telefon raqam yoki Login" required autocomplete="username">
                 </div>
 
                 <div class="auth-input-group">
                     <span class="auth-input-icon">🔑</span>
-                    <input type="password" id="authPasswordInput" placeholder="Maxfiy parol" required autocomplete="current-password">
+                    <input type="password" id="authPasswordInput" name="password" placeholder="Maxfiy parol" required autocomplete="current-password">
                     <button type="button" class="auth-eye-btn" onclick="toggleAuthPasswordVisibility()" title="Parolni ko'rsatish">
                         <span id="authEyeIcon">👁️</span>
                     </button>
@@ -849,6 +849,6 @@
     <!-- Notification Toast -->
     <div id="toastMessage" class="toast">Xabar</div>
 
-    <script src="app.js?v=13.0"></script>
+    <script src="app.js?v=14.0"></script>
 </body>
 </html>
