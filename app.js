@@ -66,32 +66,42 @@ async function syncWithLocalFileServer() {
         const res = await fetch('/api/db');
         if (res.ok) {
             const data = await res.json();
-            if (data && Array.isArray(data.accounts)) {
+            isLocalServerConnected = true;
+            
+            // If local server database.json already has data, load it
+            if (data && Array.isArray(data.accounts) && (data.accounts.length > 0 || data.transactions.length > 0)) {
                 db = data;
                 localStorage.setItem(DB_KEY, JSON.stringify(db));
-                isLocalServerConnected = true;
-                const statusPill = document.querySelector('.user-status-pill');
-                if (statusPill) {
-                    statusPill.textContent = '● database.json (Folderda Faol)';
-                    statusPill.style.color = 'var(--success)';
-                }
-                updateUserSettingsUI();
-                renderAll();
-                console.log('✅ Synchronized with local database.json');
+            } else if (db.accounts.length > 0 || db.transactions.length > 0) {
+                // If database.json was empty but browser has existing data, auto-save to database.json!
+                await fetch('/api/db', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(db, null, 2)
+                });
+                console.log('Migrated existing browser data into database.json');
             }
+
+            const statusPill = document.querySelector('.user-status-pill');
+            if (statusPill) {
+                statusPill.textContent = '● database.json (Faylda Faol)';
+                statusPill.style.color = 'var(--success)';
+            }
+            updateUserSettingsUI();
+            renderAll();
+            console.log('✅ Real-time linked to local database.json');
         }
     } catch (err) {
-        // Running static or on Netlify without local Node server
-        console.log('Running standalone (LocalStorage mode)');
+        console.log('Running in browser standalone mode');
     }
 }
 
 function saveDatabase(dataToSave) {
     const data = dataToSave || db;
-    // 1. Save to browser localStorage
+    // 1. Save to browser cache
     localStorage.setItem(DB_KEY, JSON.stringify(data));
 
-    // 2. Auto-sync to local ./database.json in this folder if server is active
+    // 2. Real-time write directly to ./database.json in this folder
     fetch('/api/db', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -101,12 +111,11 @@ function saveDatabase(dataToSave) {
             isLocalServerConnected = true;
             const statusPill = document.querySelector('.user-status-pill');
             if (statusPill) {
-                statusPill.textContent = '● database.json (Folderda Faol)';
+                statusPill.textContent = '● database.json (Faylda Faol)';
+                statusPill.style.color = 'var(--success)';
             }
         }
-    }).catch(() => {
-        // Silently continue in browser-only mode
-    });
+    }).catch(() => {});
 }
 
 // ==================== FORMATTERS ====================
