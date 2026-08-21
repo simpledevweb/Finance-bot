@@ -63,7 +63,7 @@ function loadDatabase() {
 
 function getApiEndpoint() {
     if (window.location.protocol === 'file:') {
-        return 'http://localhost:8080/api/db';
+        return 'http://localhost:1000/api/db';
     }
     return '/api/db';
 }

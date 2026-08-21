@@ -4,7 +4,7 @@ import os
 import json
 import webbrowser
 
-PORT = 8080
+PORT = 1000
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 DB_FILE = os.path.join(DIRECTORY, 'database.json')
 

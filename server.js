@@ -6,7 +6,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const PORT = 8080;
+const PORT = 1000;
 const DB_FILE = path.join(__dirname, 'database.json');
 
 // MIME types dictionary
