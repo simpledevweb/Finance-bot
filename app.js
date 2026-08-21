@@ -1401,24 +1401,35 @@ function toggleQuickLock() {
 
 function handleAuthLogin(event) {
     if (event) event.preventDefault();
-    const input = document.getElementById('authPasswordInput');
+    const phoneInput = document.getElementById('authPhoneInput');
+    const passInput = document.getElementById('authPasswordInput');
     const errorEl = document.getElementById('authError');
-    if (!input) return;
+    if (!passInput) return;
 
-    const entered = input.value.trim();
-    const correct = db.settings.password || 'Alpamis@2026!#';
+    const enteredPhone = phoneInput ? phoneInput.value.trim().replace(/[\s\-\(\)]/g, '') : '';
+    const enteredPass = passInput.value.trim();
 
-    if (entered === correct) {
+    const savedPhone = (db.settings.phone || '+998901234567').replace(/[\s\-\(\)]/g, '');
+    const savedName = (db.settings.userName || 'Alpamis Ibraymov').toLowerCase();
+    const correctPass = db.settings.password || 'Alpamis@2026!#';
+
+    const isPhoneOrUserMatch = (enteredPhone === savedPhone) || 
+                               (enteredPhone.toLowerCase() === savedName) ||
+                               (savedPhone.endsWith(enteredPhone) && enteredPhone.length >= 7);
+    const isPassMatch = (enteredPass === correctPass);
+
+    if (isPhoneOrUserMatch && isPassMatch) {
         document.getElementById('authLockScreen').style.display = 'none';
-        input.value = '';
+        if (phoneInput) phoneInput.value = '';
+        passInput.value = '';
         if (errorEl) errorEl.textContent = '';
         showToast('Xush kelibsiz, ' + (db.settings.userName || 'Alpamis Ibraymov') + '! 👋');
     } else {
         if (errorEl) {
-            errorEl.textContent = 'Parol noto\'g\'ri! Qaytadan urinib ko\'ring.';
+            errorEl.textContent = 'Telefon raqam yoki parol noto\'g\'ri! Faqat hisob egasi kira oladi.';
         }
-        input.value = '';
-        input.focus();
+        passInput.value = '';
+        passInput.focus();
     }
 }
 

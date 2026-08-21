@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f172a">
-    <link rel="stylesheet" href="style.css?v=11.0">
+    <link rel="stylesheet" href="style.css?v=12.0">
 </head>
 <body class="web-dashboard-body">
 
@@ -20,16 +20,20 @@
     <div id="authLockScreen" class="lock-screen-overlay" style="display: none;">
         <div class="lock-card auth-card">
             <div class="auth-avatar-circle">
-                <span class="auth-avatar-icon">💎</span>
+                <span class="auth-avatar-icon">🛡️</span>
             </div>
-            <h2 class="lock-title" id="authLockUserName">Alpamis Ibraymov</h2>
-            <p class="lock-subtitle" id="authLockUserPhone">+998901234567</p>
-            <p class="lock-prompt">Tizimga kirish uchun parolingizni kiriting</p>
+            <h2 class="lock-title">FinancePro Kirish</h2>
+            <p class="lock-prompt">Tizimga kirish uchun hisobingiz ma'lumotlarini kiriting</p>
             
             <form id="authLoginForm" onsubmit="handleAuthLogin(event)" class="auth-form">
                 <div class="auth-input-group">
+                    <span class="auth-input-icon">📱</span>
+                    <input type="text" id="authPhoneInput" placeholder="Telefon raqam yoki Login" required autocomplete="username">
+                </div>
+
+                <div class="auth-input-group">
                     <span class="auth-input-icon">🔑</span>
-                    <input type="password" id="authPasswordInput" placeholder="Maxfiy parolingiz..." required autocomplete="current-password">
+                    <input type="password" id="authPasswordInput" placeholder="Maxfiy parol" required autocomplete="current-password">
                     <button type="button" class="auth-eye-btn" onclick="toggleAuthPasswordVisibility()" title="Parolni ko'rsatish">
                         <span id="authEyeIcon">👁️</span>
                     </button>
@@ -37,7 +41,7 @@
                 <div id="authError" class="lock-error"></div>
                 
                 <button type="submit" class="btn-primary auth-submit-btn">
-                    <span>Kirish</span> 🚀
+                    <span>Tizimga Kirish</span> 🚀
                 </button>
             </form>
         </div>
@@ -835,6 +839,6 @@
     <!-- Notification Toast -->
     <div id="toastMessage" class="toast">Xabar</div>
 
-    <script src="app.js?v=11.0"></script>
+    <script src="app.js?v=12.0"></script>
 </body>
 </html>
