@@ -7,6 +7,24 @@ import webbrowser
 PORT = 1000
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 DB_FILE = os.path.join(DIRECTORY, 'database.json')
+MAX_DB_BYTES = 5 * 1024 * 1024
+
+def validate_database(payload):
+    if not isinstance(payload, dict):
+        raise ValueError('Database payload must be a JSON object')
+    for key in ('accounts', 'transactions'):
+        if key in payload and not isinstance(payload[key], list):
+            raise ValueError(f"'{key}' must be an array")
+    if 'settings' in payload and not isinstance(payload['settings'], dict):
+        raise ValueError("'settings' must be an object")
+
+def write_database(payload):
+    temp_file = DB_FILE + '.tmp'
+    with open(temp_file, 'w', encoding='utf-8') as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(temp_file, DB_FILE)
 
 class FinanceRequestHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -46,12 +64,17 @@ class FinanceRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         if self.path == '/api/db':
             content_length = int(self.headers.get('Content-Length', 0))
+            if content_length <= 0 or content_length > MAX_DB_BYTES:
+                self.send_response(413)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'Payload size is invalid'}).encode('utf-8'))
+                return
             body = self.rfile.read(content_length).decode('utf-8')
             try:
-                # Validate JSON
                 parsed = json.loads(body)
-                with open(DB_FILE, 'w', encoding='utf-8') as f:
-                    json.dump(parsed, f, ensure_ascii=False, indent=2)
+                validate_database(parsed)
+                write_database(parsed)
                 
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')

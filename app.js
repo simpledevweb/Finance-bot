@@ -1401,6 +1401,12 @@ function switchTab(tabId) {
     if (tabId === 'tab-analytics' || tabId === 'tab-dashboard') {
         setTimeout(updateCharts, 50);
     }
+
+    document.body.classList.remove('mobile-nav-open');
+}
+
+function toggleMobileNav() {
+    document.body.classList.toggle('mobile-nav-open');
 }
 
 // ==================== PRIVACY & PIN SECURITY ====================

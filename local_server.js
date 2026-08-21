@@ -8,6 +8,27 @@ const path = require('path');
 
 const PORT = 1000;
 const DB_FILE = path.join(__dirname, 'database.json');
+const MAX_DB_BYTES = 5 * 1024 * 1024;
+
+function validateDatabase(payload) {
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+        throw new Error('Database payload must be a JSON object');
+    }
+    for (const key of ['accounts', 'transactions']) {
+        if (key in payload && !Array.isArray(payload[key])) {
+            throw new Error(`'${key}' must be an array`);
+        }
+    }
+    if ('settings' in payload && (!payload.settings || typeof payload.settings !== 'object' || Array.isArray(payload.settings))) {
+        throw new Error("'settings' must be an object");
+    }
+}
+
+function writeDatabaseAtomically(data) {
+    const tempFile = `${DB_FILE}.tmp`;
+    fs.writeFileSync(tempFile, data, 'utf8');
+    fs.renameSync(tempFile, DB_FILE);
+}
 
 // MIME types dictionary
 const MIME_TYPES = {
@@ -52,15 +73,22 @@ const server = http.createServer((req, res) => {
 
     // 2. API: Write directly to local database.json
     if (req.url === '/api/db' && req.method === 'POST') {
+        const contentLength = Number(req.headers['content-length'] || 0);
+        if (!contentLength || contentLength > MAX_DB_BYTES) {
+            res.writeHead(413, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Payload size is invalid' }));
+            return;
+        }
         let body = '';
         req.on('data', chunk => {
             body += chunk.toString();
+            if (Buffer.byteLength(body, 'utf8') > MAX_DB_BYTES) req.destroy();
         });
         req.on('end', () => {
             try {
-                // Verify valid JSON
-                JSON.parse(body);
-                fs.writeFileSync(DB_FILE, body, 'utf8');
+                const parsed = JSON.parse(body);
+                validateDatabase(parsed);
+                writeDatabaseAtomically(JSON.stringify(parsed, null, 2));
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ success: true, message: 'Saved to database.json' }));
             } catch (err) {

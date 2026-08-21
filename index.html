@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f172a">
-    <link rel="stylesheet" href="style.css?v=14.0">
+    <link rel="stylesheet" href="style.css?v=14.1">
 </head>
 <body class="web-dashboard-body">
 
@@ -127,11 +127,18 @@
             <!-- Yuqori Topbar -->
             <header class="web-topbar">
                 <div class="topbar-left">
+                    <button type="button" class="mobile-nav-toggle" onclick="toggleMobileNav()" aria-label="Menyuni ochish" title="Menyu">☰</button>
                     <h1 class="topbar-page-title" id="currentPageTitle">Boshqaruv Paneli (Dashboard)</h1>
                     <span class="topbar-subtitle">Bugungi moliya ko'rsatkichlaringiz va hisoblar holati</span>
                 </div>
 
                 <div class="topbar-right">
+                    <button class="topbar-btn topbar-action-income" onclick="openTransactionModal('income')" title="Yangi kirim qo'shish">
+                        <span aria-hidden="true">+</span><span class="topbar-action-label">Kirim</span>
+                    </button>
+                    <button class="topbar-btn topbar-action-expense" onclick="openTransactionModal('expense')" title="Yangi chiqim qo'shish">
+                        <span aria-hidden="true">−</span><span class="topbar-action-label">Chiqim</span>
+                    </button>
                     <!-- Balans Maxfiyligi (Yashirish/Ko'rsatish) -->
                     <button class="topbar-btn" onclick="toggleBalanceVisibility()" title="Balansni yashirish/ko'rsatish">
                         <span id="eyeIcon">👁</span> Maxfiylik
@@ -849,6 +856,6 @@
     <!-- Notification Toast -->
     <div id="toastMessage" class="toast">Xabar</div>
 
-    <script src="app.js?v=14.0"></script>
+    <script src="app.js?v=14.1"></script>
 </body>
 </html>
