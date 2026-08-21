@@ -1,9 +1,10 @@
 {
   "settings": {
     "userName": "Alpamis Ibraymov",
+    "phone": "+998901234567",
     "currency": "UZS",
-    "pinEnabled": true,
-    "pinCode": "1904",
+    "authEnabled": true,
+    "password": "Alpamis@2026!#",
     "privacyHidden": false
   },
   "accounts": [

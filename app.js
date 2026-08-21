@@ -9,9 +9,10 @@ const DB_KEY = 'finance_money_manager_db';
 const defaultDatabase = {
     settings: {
         userName: 'Alpamis Ibraymov',
+        phone: '+998901234567',
         currency: 'UZS',
-        pinEnabled: false,
-        pinCode: '1904',
+        authEnabled: true,
+        password: 'Alpamis@2026!#',
         privacyHidden: false
     },
     accounts: [],
@@ -238,10 +239,10 @@ function closeConfirmModal() {
 // ==================== INITIALIZATION ====================
 if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', () => {
-        // PIN check
-        if (db.settings.pinEnabled) {
-            const pinScreen = document.getElementById('pinLockScreen');
-            if (pinScreen) pinScreen.style.display = 'flex';
+        // Password / Auth check
+        if (db.settings.authEnabled) {
+            const authScreen = document.getElementById('authLockScreen');
+            if (authScreen) authScreen.style.display = 'flex';
         }
 
         // Clean up any old service worker caches to prevent outdated mobile views
@@ -267,11 +268,31 @@ if (typeof document !== 'undefined') {
 
 function updateUserSettingsUI() {
     const name = db.settings.userName || 'Alpamis Ibraymov';
-    document.getElementById('sidebarUserName').textContent = name;
-    document.getElementById('settingUserName').value = name;
-    document.getElementById('settingCurrency').value = db.settings.currency || 'UZS';
-    document.getElementById('settingPinEnabled').checked = !!db.settings.pinEnabled;
-    document.getElementById('pinChangeRow').style.display = db.settings.pinEnabled ? 'flex' : 'none';
+    const phone = db.settings.phone || '+998901234567';
+
+    const sidebarName = document.getElementById('sidebarUserName');
+    if (sidebarName) sidebarName.textContent = name;
+    
+    const settingName = document.getElementById('settingUserName');
+    if (settingName) settingName.value = name;
+
+    const settingPhone = document.getElementById('settingUserPhone');
+    if (settingPhone) settingPhone.value = phone;
+
+    const lockName = document.getElementById('authLockUserName');
+    if (lockName) lockName.textContent = name;
+
+    const lockPhone = document.getElementById('authLockUserPhone');
+    if (lockPhone) lockPhone.textContent = phone;
+
+    const currSelect = document.getElementById('settingCurrency');
+    if (currSelect) currSelect.value = db.settings.currency || 'UZS';
+
+    const authCheck = document.getElementById('settingAuthEnabled');
+    if (authCheck) authCheck.checked = !!db.settings.authEnabled;
+
+    const passRow = document.getElementById('passwordChangeRow');
+    if (passRow) passRow.style.display = db.settings.authEnabled ? 'flex' : 'none';
 
     document.querySelectorAll('.currency-label').forEach(el => {
         el.textContent = db.settings.currency;
@@ -1369,70 +1390,79 @@ function updatePrivacyEyeIcon() {
 }
 
 function toggleQuickLock() {
-    if (!db.settings.pinEnabled) {
-        showToast('PIN qulfini Sozlamalar menyusida yoqishingiz mumkin');
+    if (!db.settings.authEnabled) {
+        showToast('Parol qulfini Sozlamalar menyusida yoqishingiz mumkin');
         switchTab('tab-settings');
         return;
     }
-    inputPinBuffer = '';
-    updatePinDots();
-    document.getElementById('pinLockScreen').style.display = 'flex';
+    const authScreen = document.getElementById('authLockScreen');
+    if (authScreen) authScreen.style.display = 'flex';
 }
 
-function pressPin(val) {
-    const errorEl = document.getElementById('pinError');
-    errorEl.textContent = '';
+function handleAuthLogin(event) {
+    if (event) event.preventDefault();
+    const input = document.getElementById('authPasswordInput');
+    const errorEl = document.getElementById('authError');
+    if (!input) return;
 
-    if (val === 'del') {
-        inputPinBuffer = inputPinBuffer.slice(0, -1);
-    } else if (inputPinBuffer.length < 4) {
-        inputPinBuffer += val;
-    }
+    const entered = input.value.trim();
+    const correct = db.settings.password || 'Alpamis@2026!#';
 
-    updatePinDots();
-
-    if (inputPinBuffer.length === 4) {
-        setTimeout(verifyPin, 150);
-    }
-}
-
-function updatePinDots() {
-    const dots = document.querySelectorAll('.pin-dots .dot');
-    dots.forEach((dot, idx) => {
-        dot.classList.toggle('filled', idx < inputPinBuffer.length);
-    });
-}
-
-function verifyPin() {
-    const correctPin = db.settings.pinCode || '1904';
-    if (inputPinBuffer === correctPin) {
-        document.getElementById('pinLockScreen').style.display = 'none';
-        inputPinBuffer = '';
-        updatePinDots();
+    if (entered === correct) {
+        document.getElementById('authLockScreen').style.display = 'none';
+        input.value = '';
+        if (errorEl) errorEl.textContent = '';
+        showToast('Xush kelibsiz, ' + (db.settings.userName || 'Alpamis Ibraymov') + '! 👋');
     } else {
-        document.getElementById('pinError').textContent = 'PIN kod noto\'g\'ri!';
-        inputPinBuffer = '';
-        updatePinDots();
+        if (errorEl) {
+            errorEl.textContent = 'Parol noto\'g\'ri! Qaytadan urinib ko\'ring.';
+        }
+        input.value = '';
+        input.focus();
     }
 }
 
-function togglePinSecurity(enabled) {
-    db.settings.pinEnabled = enabled;
-    saveDatabase();
-    document.getElementById('pinChangeRow').style.display = enabled ? 'flex' : 'none';
-    showToast(enabled ? 'PIN himoya yoqildi' : 'PIN himoya o\'chirildi');
+function toggleAuthPasswordVisibility() {
+    const input = document.getElementById('authPasswordInput');
+    const eyeIcon = document.getElementById('authEyeIcon');
+    if (!input) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        if (eyeIcon) eyeIcon.textContent = '🔒';
+    } else {
+        input.type = 'password';
+        if (eyeIcon) eyeIcon.textContent = '👁️';
+    }
 }
 
-function saveNewPin() {
-    const newPin = document.getElementById('settingNewPin').value.trim();
-    if (newPin.length !== 4 || isNaN(newPin)) {
-        showToast('PIN kod aynan 4 ta raqam bo\'lishi shart');
+function toggleAuthSecurity(enabled) {
+    db.settings.authEnabled = enabled;
+    saveDatabase();
+    const passRow = document.getElementById('passwordChangeRow');
+    if (passRow) passRow.style.display = enabled ? 'flex' : 'none';
+    showToast(enabled ? 'Parol himoyasi yoqildi' : 'Parol himoyasi o\'chirildi');
+}
+
+function saveUserPhone() {
+    const phone = document.getElementById('settingUserPhone').value.trim();
+    if (phone) {
+        db.settings.phone = phone;
+        saveDatabase();
+        updateUserSettingsUI();
+        showToast('Telefon raqam saqlandi');
+    }
+}
+
+function saveNewPassword() {
+    const newPass = document.getElementById('settingNewPassword').value.trim();
+    if (newPass.length < 4) {
+        showToast('Parol kamida 4 ta belgidan iborat bo\'lishi kerak');
         return;
     }
-    db.settings.pinCode = newPin;
+    db.settings.password = newPass;
     saveDatabase();
-    document.getElementById('settingNewPin').value = '';
-    showToast('Yangi PIN kod saqlandi');
+    document.getElementById('settingNewPassword').value = '';
+    showToast('Yangi parol muvaffaqiyatli saqlandi');
 }
 
 function saveUserName() {

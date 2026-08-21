@@ -12,37 +12,34 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f172a">
-    <link rel="stylesheet" href="style.css?v=10.0">
+    <link rel="stylesheet" href="style.css?v=11.0">
 </head>
 <body class="web-dashboard-body">
 
-    <!-- PIN Lock Overlay (Xavfsizlik yoqilgan bo'lsa) -->
-    <div id="pinLockScreen" class="lock-screen-overlay" style="display: none;">
-        <div class="lock-card">
-            <div class="lock-icon-circle">🔒</div>
-            <h2 class="lock-title">Finance Money Manager</h2>
-            <p class="lock-prompt" id="lockPrompt">Kirish uchun 4 xonali PIN kodni kiriting</p>
-            <div class="pin-dots">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
+    <!-- Auth Password Lock Screen (Xavfsizlik yoqilgan bo'lsa) -->
+    <div id="authLockScreen" class="lock-screen-overlay" style="display: none;">
+        <div class="lock-card auth-card">
+            <div class="auth-avatar-circle">
+                <span class="auth-avatar-icon">💎</span>
             </div>
-            <div class="keypad">
-                <button type="button" class="key-btn" onclick="pressPin('1')">1</button>
-                <button type="button" class="key-btn" onclick="pressPin('2')">2</button>
-                <button type="button" class="key-btn" onclick="pressPin('3')">3</button>
-                <button type="button" class="key-btn" onclick="pressPin('4')">4</button>
-                <button type="button" class="key-btn" onclick="pressPin('5')">5</button>
-                <button type="button" class="key-btn" onclick="pressPin('6')">6</button>
-                <button type="button" class="key-btn" onclick="pressPin('7')">7</button>
-                <button type="button" class="key-btn" onclick="pressPin('8')">8</button>
-                <button type="button" class="key-btn" onclick="pressPin('9')">9</button>
-                <button type="button" class="key-btn empty"></button>
-                <button type="button" class="key-btn" onclick="pressPin('0')">0</button>
-                <button type="button" class="key-btn delete" onclick="pressPin('del')">⌫</button>
-            </div>
-            <div id="pinError" class="lock-error"></div>
+            <h2 class="lock-title" id="authLockUserName">Alpamis Ibraymov</h2>
+            <p class="lock-subtitle" id="authLockUserPhone">+998901234567</p>
+            <p class="lock-prompt">Tizimga kirish uchun parolingizni kiriting</p>
+            
+            <form id="authLoginForm" onsubmit="handleAuthLogin(event)" class="auth-form">
+                <div class="auth-input-group">
+                    <span class="auth-input-icon">🔑</span>
+                    <input type="password" id="authPasswordInput" placeholder="Maxfiy parolingiz..." required autocomplete="current-password">
+                    <button type="button" class="auth-eye-btn" onclick="toggleAuthPasswordVisibility()" title="Parolni ko'rsatish">
+                        <span id="authEyeIcon">👁️</span>
+                    </button>
+                </div>
+                <div id="authError" class="lock-error"></div>
+                
+                <button type="submit" class="btn-primary auth-submit-btn">
+                    <span>Kirish</span> 🚀
+                </button>
+            </form>
         </div>
     </div>
 
@@ -572,28 +569,39 @@
                             </div>
                         </div>
 
-                        <!-- Xavfsizlik & PIN -->
+                        <!-- Xavfsizlik & Kirish Paroli -->
                         <div class="dashboard-panel">
-                            <h3>🔒 Xavfsizlik va Qulf (PIN Kod)</h3>
+                            <h3>🔒 Xavfsizlik va Kirish Paroli</h3>
                             <div class="setting-row">
                                 <div>
-                                    <strong>PIN Kod bilan himoyalash</strong>
-                                    <small class="text-muted d-block">Ilovaga kirishda 4 xonali PIN talab qilish</small>
+                                    <strong>Parol bilan himoyalash</strong>
+                                    <small class="text-muted d-block">Ilovaga kirishda kuchli parol talab qilish</small>
                                 </div>
                                 <label class="switch">
-                                    <input type="checkbox" id="settingPinEnabled" onchange="togglePinSecurity(this.checked)">
+                                    <input type="checkbox" id="settingAuthEnabled" onchange="toggleAuthSecurity(this.checked)">
                                     <span class="slider round"></span>
                                 </label>
                             </div>
 
-                            <div class="setting-row" id="pinChangeRow" style="display: none;">
+                            <div class="setting-row">
                                 <div>
-                                    <strong>Yangi PIN Kod o'rnatish</strong>
-                                    <small class="text-muted d-block">4 ta raqamdan iborat maxfiy kod</small>
+                                    <strong>Telefon Raqam / Login</strong>
+                                    <small class="text-muted d-block">Qurilmada ko'rsatiladigan telefon raqamingiz</small>
                                 </div>
                                 <div class="setting-inline-action">
-                                    <input type="password" id="settingNewPin" maxlength="4" placeholder="1904" style="width: 100px; text-align: center;">
-                                    <button class="btn-primary-sm" onclick="saveNewPin()">O'rnatish</button>
+                                    <input type="text" id="settingUserPhone" placeholder="+998901234567" style="width: 200px;">
+                                    <button class="btn-primary-sm" onclick="saveUserPhone()">Saqlash</button>
+                                </div>
+                            </div>
+
+                            <div class="setting-row" id="passwordChangeRow" style="display: none;">
+                                <div>
+                                    <strong>Yangi Parol o'rnatish</strong>
+                                    <small class="text-muted d-block">Harf, raqam va maxsus belgilardan iborat kuchli parol</small>
+                                </div>
+                                <div class="setting-inline-action">
+                                    <input type="text" id="settingNewPassword" placeholder="Yangi parol..." style="width: 200px;">
+                                    <button class="btn-primary-sm" onclick="saveNewPassword()">O'rnatish</button>
                                 </div>
                             </div>
                         </div>
@@ -827,6 +835,6 @@
     <!-- Notification Toast -->
     <div id="toastMessage" class="toast">Xabar</div>
 
-    <script src="app.js?v=10.0"></script>
+    <script src="app.js?v=11.0"></script>
 </body>
 </html>
