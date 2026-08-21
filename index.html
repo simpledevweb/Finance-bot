@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Money Manager - Web Dashboard</title>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="stylesheet" href="style.css?v=10.0">
+</head>
+<body class="web-dashboard-body">
+
+    <!-- PIN Lock Overlay (Xavfsizlik yoqilgan bo'lsa) -->
+    <div id="pinLockScreen" class="lock-screen-overlay" style="display: none;">
+        <div class="lock-card">
+            <div class="lock-icon-circle">🔒</div>
+            <h2 class="lock-title">Finance Money Manager</h2>
+            <p class="lock-prompt" id="lockPrompt">Kirish uchun 4 xonali PIN kodni kiriting</p>
+            <div class="pin-dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+            <div class="keypad">
+                <button type="button" class="key-btn" onclick="pressPin('1')">1</button>
+                <button type="button" class="key-btn" onclick="pressPin('2')">2</button>
+                <button type="button" class="key-btn" onclick="pressPin('3')">3</button>
+                <button type="button" class="key-btn" onclick="pressPin('4')">4</button>
+                <button type="button" class="key-btn" onclick="pressPin('5')">5</button>
+                <button type="button" class="key-btn" onclick="pressPin('6')">6</button>
+                <button type="button" class="key-btn" onclick="pressPin('7')">7</button>
+                <button type="button" class="key-btn" onclick="pressPin('8')">8</button>
+                <button type="button" class="key-btn" onclick="pressPin('9')">9</button>
+                <button type="button" class="key-btn empty"></button>
+                <button type="button" class="key-btn" onclick="pressPin('0')">0</button>
+                <button type="button" class="key-btn delete" onclick="pressPin('del')">⌫</button>
+            </div>
+            <div id="pinError" class="lock-error"></div>
+        </div>
+    </div>
+
+    <!-- ==================== WEB DASHBOARD LAYOUT ==================== -->
+    <div class="web-app-wrapper">
+        
+        <!-- 1. CHAP SIDEBAR MENYU -->
+        <aside class="web-sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-logo">💎</div>
+                <div class="brand-text">
+                    <h2>Finance<span>Pro</span></h2>
+                    <small>Money Manager Web</small>
+                </div>
+            </div>
+
+            <!-- Foydalanuvchi Profili -->
+            <div class="sidebar-user-card">
+                <div class="user-avatar" id="sidebarAvatar">👤</div>
+                <div class="user-meta">
+                    <span class="user-name" id="sidebarUserName">Alpamis Ibraymov</span>
+                    <span class="user-status-pill">● Baza Faol (Local)</span>
+                </div>
+            </div>
+
+            <!-- Asosiy Navigatsiya Menyusi -->
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">ASOSIY MENYU</div>
+                <button class="nav-item active" onclick="switchTab('tab-dashboard')">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-label">Dashboard (Bosh sahifa)</span>
+                </button>
+                <button class="nav-item" onclick="switchTab('tab-accounts')">
+                    <span class="nav-icon">💳</span>
+                    <span class="nav-label">Hisoblar & Balans</span>
+                    <span class="nav-badge" id="badgeAccountsCount">0</span>
+                </button>
+                <button class="nav-item" onclick="switchTab('tab-history')">
+                    <span class="nav-icon">📜</span>
+                    <span class="nav-label">Operatsiyalar Tarixi</span>
+                </button>
+                <button class="nav-item" onclick="switchTab('tab-salary')">
+                    <span class="nav-icon">💰</span>
+                    <span class="nav-label">Oylik Maosh (Salary)</span>
+                </button>
+                <button class="nav-item" onclick="switchTab('tab-analytics')">
+                    <span class="nav-icon">📈</span>
+                    <span class="nav-label">Moliya Tahlili & Grafik</span>
+                </button>
+                <button class="nav-item" onclick="switchTab('tab-settings')">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-label">Sozlamalar & Zaxira</span>
+                </button>
+
+                <!-- Alohida Tezkor Amallar Navbar bloki -->
+                <div class="nav-section-title" style="margin-top: 20px;">TEZKOR AMALLAR</div>
+                <div class="sidebar-quick-actions">
+                    <button class="nav-action-pill inc" onclick="openTransactionModal('income')">
+                        <span class="pill-ico">➕</span>
+                        <span>Kirim</span>
+                    </button>
+                    <button class="nav-action-pill exp" onclick="openTransactionModal('expense')">
+                        <span class="pill-ico">➖</span>
+                        <span>Chiqim</span>
+                    </button>
+                    <button class="nav-action-pill trans" onclick="openTransactionModal('transfer')">
+                        <span class="pill-ico">⇄</span>
+                        <span>O'tkazma</span>
+                    </button>
+                    <button class="nav-action-pill dep" onclick="openTransactionModal('deposit')">
+                        <span class="pill-ico">🏦</span>
+                        <span>Omonat</span>
+                    </button>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 2. ASOSIY MAZMUN (MAIN CONTENT AREA) -->
+        <div class="web-main-container">
+            
+            <!-- Yuqori Topbar -->
+            <header class="web-topbar">
+                <div class="topbar-left">
+                    <h1 class="topbar-page-title" id="currentPageTitle">Boshqaruv Paneli (Dashboard)</h1>
+                    <span class="topbar-subtitle">Bugungi moliya ko'rsatkichlaringiz va hisoblar holati</span>
+                </div>
+
+                <div class="topbar-right">
+                    <!-- Balans Maxfiyligi (Yashirish/Ko'rsatish) -->
+                    <button class="topbar-btn" onclick="toggleBalanceVisibility()" title="Balansni yashirish/ko'rsatish">
+                        <span id="eyeIcon">👁</span> Maxfiylik
+                    </button>
+                </div>
+            </header>
+
+            <!-- Sahifalar Kontenti -->
+            <main class="web-content-body">
+
+                <!-- ==================== TAB 1: DASHBOARD ==================== -->
+                <section id="tab-dashboard" class="tab-view active">
+                    
+                    <!-- Yagona Asosiy Birlashgan Balans Kartasi (Unified Hero Card) -->
+                    <div class="unified-hero-card">
+                        <div class="hero-card-left">
+                            <div class="hero-card-label">
+                                <span>UMUMIY SOF BOYLIK (NET WORTH)</span>
+                                <span class="hero-card-icon">💰</span>
+                            </div>
+                            <div class="hero-card-main-balance" id="totalNetWorth">0 UZS</div>
+                            <div class="hero-card-subtext">Barcha hisoblar va jamg'armalardagi jami sof mablag'</div>
+                        </div>
+
+                        <div class="hero-card-stats-row">
+                            <div class="hero-stat-pill income">
+                                <div class="stat-pill-icon">▲</div>
+                                <div class="stat-pill-data">
+                                    <small>Kirim (Bu oy)</small>
+                                    <strong id="monthIncomeText">+0 UZS</strong>
+                                </div>
+                            </div>
+
+                            <div class="hero-stat-pill expense">
+                                <div class="stat-pill-icon">▼</div>
+                                <div class="stat-pill-data">
+                                    <small>Chiqim (Bu oy)</small>
+                                    <strong id="monthExpenseText">-0 UZS</strong>
+                                </div>
+                            </div>
+
+                            <div class="hero-stat-pill deposit">
+                                <div class="stat-pill-icon">🏦</div>
+                                <div class="stat-pill-data">
+                                    <small>Omonat / Jamg'arma</small>
+                                    <strong id="totalDepositBalance">0 UZS</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2 Ustunli Web Dashboard Asosiy Paneli -->
+                    <div class="dashboard-columns-grid">
+                        
+                        <!-- Chap Katta Ustun (70%) -->
+                        <div class="dash-col-left">
+                            
+                            <!-- Kirim vs Chiqim Oylik Grafikasi -->
+                            <div class="dashboard-panel">
+                                <div class="panel-header">
+                                    <div class="panel-title-wrap">
+                                        <span class="panel-icon">📊</span>
+                                        <h3>Kirim va Chiqim Nisbati (Dinamika)</h3>
+                                    </div>
+                                    <button class="btn-link" onclick="switchTab('tab-analytics')">Batafsil tahlil &rarr;</button>
+                                </div>
+                                <div class="chart-box-main">
+                                    <canvas id="incomeExpenseChart"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- So'nggi Operatsiyalar Jadvali -->
+                            <div class="dashboard-panel">
+                                <div class="panel-header">
+                                    <div class="panel-title-wrap">
+                                        <span class="panel-icon">🕒</span>
+                                        <h3>So'nggi Operatsiyalar</h3>
+                                    </div>
+                                    <button class="btn-link" onclick="switchTab('tab-history')">Barcha tarixni ko'rish &rarr;</button>
+                                </div>
+
+                                <div class="table-responsive">
+                                    <table class="web-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Turi</th>
+                                                <th>Kategoriya / Izoh</th>
+                                                <th>Hisob</th>
+                                                <th>Sana</th>
+                                                <th class="text-right">Summa</th>
+                                                <th class="text-center">Amal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="dashboardTransactionsTable">
+                                            <!-- JS orqali to'ldiriladi -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- O'ng Ustun (30%) -->
+                        <div class="dash-col-right">
+                            
+                            <!-- Hisoblarim Bloki -->
+                            <div class="dashboard-panel">
+                                <div class="panel-header">
+                                    <div class="panel-title-wrap">
+                                        <span class="panel-icon">💳</span>
+                                        <h3>Hisoblar & Balans</h3>
+                                    </div>
+                                    <button class="btn-add-mini" onclick="openAddAccountModal()" title="Hisob qo'shish">+</button>
+                                </div>
+                                <div class="accounts-side-list" id="dashboardAccountsList">
+                                    <!-- JS orqali to'ldiriladi -->
+                                </div>
+                            </div>
+
+                            <!-- Xarajatlar Taqsimoti (Donut Chart) -->
+                            <div class="dashboard-panel">
+                                <div class="panel-header">
+                                    <div class="panel-title-wrap">
+                                        <span class="panel-icon">🍕</span>
+                                        <h3>Xarajatlar Taqsimoti</h3>
+                                    </div>
+                                </div>
+                                <div class="donut-chart-container">
+                                    <canvas id="categoryExpenseChart"></canvas>
+                                </div>
+                                <div id="categoryBreakdownList" class="category-side-breakdown">
+                                    <!-- JS orqali to'ldiriladi -->
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- ==================== TAB 2: HISOBLAR (ACCOUNTS) ==================== -->
+                <section id="tab-accounts" class="tab-view">
+                    <div class="page-top-actions-bar">
+                        <div>
+                            <h2>Hisoblarim va Balanslar Boshqaruvi</h2>
+                            <p class="text-muted">Bank kartalari, naqd pullar va omonatlarni qo'shing va boshqaring</p>
+                        </div>
+                        <button class="btn-primary" onclick="openAddAccountModal()">
+                            <span>➕</span> Yangi Hisob Qo'shish
+                        </button>
+                    </div>
+
+                    <!-- Toifalar Filtrlari -->
+                    <div class="account-type-tabs">
+                        <button class="acc-filter-tab active" onclick="filterAccountView('all', this)">Barcha Hisoblar</button>
+                        <button class="acc-filter-tab" onclick="filterAccountView('card', this)">💳 Bank Kartalari</button>
+                        <button class="acc-filter-tab" onclick="filterAccountView('cash', this)">💵 Naqd Pul</button>
+                        <button class="acc-filter-tab" onclick="filterAccountView('deposit', this)">🏦 Omonat / Depozit</button>
+                    </div>
+
+                    <!-- Hisoblar Katta Gridi (Web Grid) -->
+                    <div class="web-accounts-grid" id="fullAccountsList">
+                        <!-- JS orqali to'ldiriladi -->
+                    </div>
+                </section>
+
+
+                <!-- ==================== TAB 3: TARIX VA FILTER ==================== -->
+                <section id="tab-history" class="tab-view">
+                    <div class="page-top-actions-bar">
+                        <div>
+                            <h2>Barcha Operatsiyalar Tarixi</h2>
+                            <p class="text-muted">Kengaytirilgan filtrlar, qidiruv va Excel formatida eksport</p>
+                        </div>
+                        <div class="history-actions-row">
+                            <button class="btn-secondary" onclick="exportTransactionsCSV()">
+                                <span>📊</span> Excel / CSV Yuklab Olish
+                            </button>
+                            <button class="btn-primary" onclick="openTransactionModal('expense')">
+                                <span>➕</span> Yangi Operatsiya
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Web Filter Paneli -->
+                    <div class="web-filter-card">
+                        <div class="filter-top-search">
+                            <span class="search-ico">🔍</span>
+                            <input type="text" id="searchInput" placeholder="Izoh, kategoriya yoki summa bo'yicha tezkor qidiruv..." oninput="applyFilters()">
+                            <button class="btn-secondary btn-primary-sm" onclick="resetAllFilters()" title="Filtrlarni tozalash">Filtrni tozalash</button>
+                        </div>
+
+                        <div class="filter-controls-grid">
+                            <!-- 1. FROM (Dan) -->
+                            <div class="f-control">
+                                <label>📅 Dan (From date):</label>
+                                <input type="date" id="filterStartDate" onchange="onDateInputFilter()">
+                            </div>
+
+                            <!-- 2. TO (Gacha) -->
+                            <div class="f-control">
+                                <label>📅 Gacha (To date):</label>
+                                <input type="date" id="filterEndDate" onchange="onDateInputFilter()">
+                            </div>
+
+                            <!-- 3. Tezkor Davr -->
+                            <div class="f-control">
+                                <label>⚡️ Tezkor davr:</label>
+                                <select id="filterPeriod" onchange="onPeriodChange()">
+                                    <option value="all" selected>Barcha vaqt</option>
+                                    <option value="today">Bugun</option>
+                                    <option value="yesterday">Kecha</option>
+                                    <option value="this_week">Bu hafta</option>
+                                    <option value="this_month">Bu oy</option>
+                                    <option value="this_year">Shu yil</option>
+                                </select>
+                            </div>
+
+                            <!-- 4. Operatsiya Turi -->
+                            <div class="f-control">
+                                <label>🔄 Operatsiya turi:</label>
+                                <select id="filterType" onchange="applyFilters()">
+                                    <option value="all">Barcha turlar</option>
+                                    <option value="salary">💰 Faqat Oylik Maosh</option>
+                                    <option value="income">➕ Barcha Kirimlar</option>
+                                    <option value="expense">➖ Chiqim (Xarajat)</option>
+                                    <option value="transfer">⇄ O'tkazma</option>
+                                    <option value="deposit">🏦 Omonat operatsiyasi</option>
+                                </select>
+                            </div>
+
+                            <!-- 5. Hisob -->
+                            <div class="f-control">
+                                <label>💳 Hisob:</label>
+                                <select id="filterAccount" onchange="applyFilters()">
+                                    <option value="all">Barcha hisoblar</option>
+                                    <!-- JS orqali to'ldiriladi -->
+                                </select>
+                            </div>
+
+                            <!-- 6. Kategoriya -->
+                            <div class="f-control">
+                                <label>🏷️ Kategoriya:</label>
+                                <select id="filterCategory" onchange="applyFilters()">
+                                    <option value="all">Barcha kategoriyalar</option>
+                                    <!-- JS orqali to'ldiriladi -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Filter Xulosasi -->
+                        <div class="filter-results-summary">
+                            <span>Topilgan: <b id="filteredCount">0 ta</b></span>
+                            <span>Jami Kirim: <b id="filteredIncome" class="text-success">+0 UZS</b></span>
+                            <span>Jami Chiqim: <b id="filteredExpense" class="text-danger">-0 UZS</b></span>
+                        </div>
+                    </div>
+
+                    <!-- Tarix To'liq Jadvali (Full Web Table) -->
+                    <div class="dashboard-panel">
+                        <div class="table-responsive">
+                            <table class="web-table full-table">
+                                <thead>
+                                    <tr>
+                                        <th>Turi</th>
+                                        <th>Kategoriya</th>
+                                        <th>Hisob</th>
+                                        <th>Izoh</th>
+                                        <th>Sana va Vaqt</th>
+                                        <th class="text-right">Summa</th>
+                                        <th class="text-center">Amal</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fullHistoryTableBody">
+                                    <!-- JS orqali to'ldiriladi -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+
+                <!-- ==================== TAB: OYLIK MAOSH & DAROMADLAR ==================== -->
+                <section id="tab-salary" class="tab-view">
+                    <div class="page-top-actions-bar">
+                        <div>
+                            <h2>💰 Oylik Maoshlar Tarixi</h2>
+                            <p class="text-muted">Barcha tushgan oylik maoshlarning to'liq va alohida tarixi</p>
+                        </div>
+                        <button class="btn-secondary" onclick="exportSalaryCSV()">
+                            <span>📊</span> Excel / CSV Yuklab Olish
+                        </button>
+                    </div>
+
+                    <!-- Maosh Filtr Paneli -->
+                    <div class="web-filter-card">
+                        <div class="filter-top-search">
+                            <span class="search-ico">🔍</span>
+                            <input type="text" id="salarySearchInput" placeholder="Izoh yoki summa bo'yicha qidirish..." oninput="applySalaryFilters()">
+                            <button class="btn-secondary btn-primary-sm" onclick="resetSalaryFilters()">Filtrni tozalash</button>
+                        </div>
+
+                        <div class="filter-controls-grid" style="grid-template-columns: repeat(4, 1fr);">
+                            <div class="f-control">
+                                <label>📅 Dan (From):</label>
+                                <input type="date" id="salaryStartDate" onchange="applySalaryFilters()">
+                            </div>
+                            <div class="f-control">
+                                <label>📅 Gacha (To):</label>
+                                <input type="date" id="salaryEndDate" onchange="applySalaryFilters()">
+                            </div>
+                            <div class="f-control">
+                                <label>⚡️ Tezkor davr:</label>
+                                <select id="salaryPeriodSelect" onchange="onSalaryPeriodChange()">
+                                    <option value="all" selected>Barcha vaqt</option>
+                                    <option value="today">Bugun</option>
+                                    <option value="this_month">Bu oy</option>
+                                    <option value="this_year">Shu yil</option>
+                                </select>
+                            </div>
+                            <div class="f-control">
+                                <label>💳 Qaysi hisobga:</label>
+                                <select id="salaryAccountFilter" onchange="applySalaryFilters()">
+                                    <option value="all">Barcha hisoblar</option>
+                                    <!-- JS orqali to'ldiriladi -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Maosh Filter Xulosasi -->
+                        <div class="filter-results-summary">
+                            <span>Jami topilgan maoshlar: <b id="salaryCountSummary">0 ta</b></span>
+                            <span>Jami summa: <b id="salaryTotalSummary" class="text-success">+0 UZS</b></span>
+                        </div>
+                    </div>
+
+                    <!-- Maoshlar Jadvali -->
+                    <div class="dashboard-panel">
+                        <div class="panel-header">
+                            <div class="panel-title-wrap">
+                                <span class="panel-icon">📜</span>
+                                <h3>Maoshlar Tarixi Jadvali</h3>
+                            </div>
+                            <button class="btn-secondary btn-primary-sm" onclick="exportSalaryCSV()">
+                                <span>📊</span> Excel Yuklab Olish
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="web-table full-table">
+                                <thead>
+                                    <tr>
+                                        <th>Turi</th>
+                                        <th>Kategoriya</th>
+                                        <th>Qabul Qilgan Hisob</th>
+                                        <th>Izoh</th>
+                                        <th>Sana va Vaqt</th>
+                                        <th class="text-right">Maosh Summasi</th>
+                                        <th class="text-center">Amal</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="salaryHistoryTableBody">
+                                    <!-- JS orqali to'ldiriladi -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+
+                <!-- ==================== TAB 4: STATISTIKA VA TAHLIL ==================== -->
+                <section id="tab-analytics" class="tab-view">
+                    <div class="page-top-actions-bar">
+                        <div>
+                            <h2>Moliya Tahlili va Grafiklar</h2>
+                            <p class="text-muted">Kirim, chiqim va xarajatlarning to'liq vizual tahlili</p>
+                        </div>
+                        <select id="statsMonthSelect" class="select-styled" onchange="updateCharts()">
+                            <option value="this_month">Bu oy</option>
+                            <option value="last_month">O'tgan oy</option>
+                            <option value="all_time">Barcha vaqt</option>
+                        </select>
+                    </div>
+
+                    <div class="analytics-charts-grid">
+                        <div class="dashboard-panel">
+                            <h3>📊 Kirim va Chiqim Balansi Dinamikasi</h3>
+                            <div class="chart-box-large">
+                                <canvas id="analyticsBarChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-panel">
+                            <h3>🍕 Kategoriyalar Bo'yicha Xarajatlar Taqsimoti</h3>
+                            <div class="chart-box-large">
+                                <canvas id="analyticsPieChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+
+                <!-- ==================== TAB 5: SOZLAMALAR VA BAZA ==================== -->
+                <section id="tab-settings" class="tab-view">
+                    <div class="page-top-actions-bar">
+                        <div>
+                            <h2>Tizim Sozlamalari va Baza Boshqaruvi</h2>
+                            <p class="text-muted">Valyuta, xavfsizlik, zaxira nusxa (JSON backup) va shaxsiy ma'lumotlar</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-cards-grid">
+                        <!-- Profil & Valyuta -->
+                        <div class="dashboard-panel">
+                            <h3>👤 Shaxsiy Sozlamalar</h3>
+                            <div class="setting-row">
+                                <div>
+                                    <strong>Foydalanuvchi / Hamyon Nomi</strong>
+                                    <small class="text-muted d-block">Ilovada ko'rinadigan ismingiz</small>
+                                </div>
+                                <div class="setting-inline-action">
+                                    <input type="text" id="settingUserName" placeholder="Alpamis" style="width: 200px;">
+                                    <button class="btn-primary-sm" onclick="saveUserName()">Saqlash</button>
+                                </div>
+                            </div>
+
+                            <div class="setting-row">
+                                <div>
+                                    <strong>Asosiy Valyuta</strong>
+                                    <small class="text-muted d-block">Hisob-kitoblar ko'rsatiladigan asosiy valyuta</small>
+                                </div>
+                                <select id="settingCurrency" onchange="changeCurrency(this.value)">
+                                    <option value="UZS">UZS (so'm)</option>
+                                    <option value="USD">USD ($)</option>
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="RUB">RUB (₽)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Xavfsizlik & PIN -->
+                        <div class="dashboard-panel">
+                            <h3>🔒 Xavfsizlik va Qulf (PIN Kod)</h3>
+                            <div class="setting-row">
+                                <div>
+                                    <strong>PIN Kod bilan himoyalash</strong>
+                                    <small class="text-muted d-block">Ilovaga kirishda 4 xonali PIN talab qilish</small>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="settingPinEnabled" onchange="togglePinSecurity(this.checked)">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+
+                            <div class="setting-row" id="pinChangeRow" style="display: none;">
+                                <div>
+                                    <strong>Yangi PIN Kod o'rnatish</strong>
+                                    <small class="text-muted d-block">4 ta raqamdan iborat maxfiy kod</small>
+                                </div>
+                                <div class="setting-inline-action">
+                                    <input type="password" id="settingNewPin" maxlength="4" placeholder="1904" style="width: 100px; text-align: center;">
+                                    <button class="btn-primary-sm" onclick="saveNewPin()">O'rnatish</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Baza va JSON Zaxira -->
+                        <div class="dashboard-panel full-width">
+                            <h3>💾 JSON SQLite-Store Baza Boshqaruvi (Backup & Restore)</h3>
+                            <p class="text-muted">Barcha hisoblar, operatsiyalar va sozlamalaringiz brauzer xotirasida xavfsiz saqlanadi. Istalgan paytda butun bazani kompyuteringizga yuklab olishingiz yoki boshqa qurilmaga tiklashingiz mumkin.</p>
+                            
+                            <div class="backup-actions-grid">
+                                <div class="backup-box">
+                                    <h4>📥 Baza Nusxasini Yuklab Olish (Export JSON)</h4>
+                                    <p>Butun moliya tarixingizni `.json` fayl sifatida saqlab oling.</p>
+                                    <button class="btn-primary" onclick="exportDataJSON()">
+                                        <span>💾</span> JSON Faylni Yuklab Olish
+                                    </button>
+                                </div>
+
+                                <div class="backup-box">
+                                    <h4>📤 Zaxiradan Qayta Tiklash (Import JSON)</h4>
+                                    <p>Oldin saqlangan `.json` faylini tanlang va bazani to'liq tiklang.</p>
+                                    <label class="btn-secondary btn-file-upload">
+                                        <span>📁</span> JSON Faylni Tanlash
+                                        <input type="file" id="importJsonInput" accept=".json" onchange="importDataJSON(event)" style="display: none;">
+                                    </label>
+                                </div>
+
+                                <div class="backup-box danger">
+                                    <h4>🗑 Bazani Dastlabki Holatga Qaytarish</h4>
+                                    <p>Barcha hisob va operatsiyalarni tozalab, yangidan boshlash.</p>
+                                    <button class="btn-danger" onclick="resetDatabase()">
+                                        <span>⚠️</span> Bazani Tozalash
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- 1. Yangi Operatsiya Modali -->
+    <div id="txModal" class="modal-backdrop" style="display: none;">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 id="txModalTitle">Yangi Operatsiya</h3>
+                <button class="close-btn" onclick="closeTxModal()">✕</button>
+            </div>
+            
+            <div class="tx-type-selector">
+                <button class="type-btn active" id="btnTypeExpense" onclick="setTxType('expense')">➖ Chiqim</button>
+                <button class="type-btn" id="btnTypeIncome" onclick="setTxType('income')">➕ Kirim</button>
+                <button class="type-btn" id="btnTypeTransfer" onclick="setTxType('transfer')">⇄ O'tkazma</button>
+                <button class="type-btn" id="btnTypeDeposit" onclick="setTxType('deposit')">🏦 Omonat</button>
+            </div>
+
+            <form id="txForm" onsubmit="saveTransaction(event)">
+                <input type="hidden" id="txId" value="">
+
+                <!-- Summa -->
+                <div class="form-group">
+                    <label>Summa (<span class="currency-label">UZS</span>):</label>
+                    <input type="number" id="txAmount" placeholder="0" step="any" required min="1" class="input-large">
+                </div>
+
+                <!-- Oddiy Kirim/Chiqim uchun Hisob -->
+                <div class="form-group" id="groupSingleAccount">
+                    <label id="lblSingleAccount">Qaysi hisobdan:</label>
+                    <select id="txAccount" required>
+                        <!-- JS orqali to'ldiriladi -->
+                    </select>
+                </div>
+
+                <!-- O'tkazma / Depozit uchun 'Qayerdan' va 'Qayerga' -->
+                <div id="groupTransferAccounts" style="display: none;">
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label>Qayerdan (Chiqarish):</label>
+                            <select id="txFromAccount">
+                                <!-- JS orqali to'ldiriladi -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Qayerga (Qabul qilish):</label>
+                            <select id="txToAccount">
+                                <!-- JS orqali to'ldiriladi -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deposit Harakat Turi (+ To'ldirish, - Yechish, Foiz daromadi) -->
+                <div class="form-group" id="groupDepositSubtype" style="display: none;">
+                    <label>Omonat harakati:</label>
+                    <select id="txDepositSubtype" onchange="onDepositSubtypeChange()">
+                        <option value="topup">➕ Omonatni to'ldirish (Kartadan/Naqddan o'tkazish)</option>
+                        <option value="withdraw">➖ Omonatdan pul yechish (Kartaga/Naqdga o'tkazish)</option>
+                        <option value="interest">📈 Omonat foiz daromadini qo'shish (+)</option>
+                    </select>
+                </div>
+
+                <!-- Kategoriya (Kirim va Chiqim uchun) -->
+                <div class="form-group" id="groupCategory">
+                    <label>Kategoriya:</label>
+                    <select id="txCategory">
+                        <!-- JS orqali to'ldiriladi -->
+                    </select>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label>Sana va Vaqt:</label>
+                        <input type="datetime-local" id="txDateTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Izoh:</label>
+                        <input type="text" id="txComment" placeholder="Masalan: Bozorlik, Tushlik, Oylik...">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeTxModal()">Bekor qilish</button>
+                    <button type="submit" class="btn-primary">Saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- 2. Yangi Hisob Qo'shish / Tahrirlash Modali -->
+    <div id="accountModal" class="modal-backdrop" style="display: none;">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 id="accountModalTitle">Yangi Hisob Qo'shish</h3>
+                <button class="close-btn" onclick="closeAccountModal()">✕</button>
+            </div>
+            
+            <form id="accountForm" onsubmit="saveAccount(event)">
+                <input type="hidden" id="accEditId" value="">
+
+                <div class="form-group">
+                    <label>Hisob Turi:</label>
+                    <select id="accType" onchange="onAccTypeChange()" required>
+                        <option value="card">💳 Bank Kartasi (Uzcard, Humo, Visa...)</option>
+                        <option value="cash">💵 Naqd Pul (Hamyon / Seyf)</option>
+                        <option value="deposit">🏦 Omonat / Depozit (Jamg'arma)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Hisob Nomi:</label>
+                    <input type="text" id="accName" placeholder="Masalan: Asaka Uzcard, Kapital Humo, Seyfdagi Naqd..." required>
+                </div>
+
+                <div class="form-group">
+                    <label>Boshlang'ich Balans (<span class="currency-label">UZS</span>):</label>
+                    <input type="number" id="accBalance" placeholder="0" step="any" required>
+                </div>
+
+                <div id="depositExtraFields" style="display: none;">
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label>Yillik Foiz Stavkasi (%):</label>
+                            <input type="number" id="accDepositRate" placeholder="22" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label>Muddati (Oy):</label>
+                            <input type="number" id="accDepositMonths" placeholder="12">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Karta / Hisob Rangini Tanlang:</label>
+                    <div class="color-picker-row">
+                        <label class="color-radio" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                            <input type="radio" name="accColor" value="blue" checked>
+                        </label>
+                        <label class="color-radio" style="background: linear-gradient(135deg, #10b981, #047857);">
+                            <input type="radio" name="accColor" value="green">
+                        </label>
+                        <label class="color-radio" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+                            <input type="radio" name="accColor" value="purple">
+                        </label>
+                        <label class="color-radio" style="background: linear-gradient(135deg, #f59e0b, #b45309);">
+                            <input type="radio" name="accColor" value="amber">
+                        </label>
+                        <label class="color-radio" style="background: linear-gradient(135deg, #ef4444, #b91c1c);">
+                            <input type="radio" name="accColor" value="red">
+                        </label>
+                        <label class="color-radio" style="background: linear-gradient(135deg, #06b6d4, #0e7490);">
+                            <input type="radio" name="accColor" value="cyan">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeAccountModal()">Bekor qilish</button>
+                    <button type="submit" class="btn-primary">Saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. Universal Custom Action / Delete Confirmation Modal -->
+    <div id="confirmModal" class="modal-backdrop" style="display: none;">
+        <div class="modal-dialog modal-confirm">
+            <div class="confirm-icon-wrap" id="confirmIcon">🗑️</div>
+            <h3 id="confirmTitle">O'chirishni tasdiqlaysizmi?</h3>
+            <p id="confirmMessage">Ushbu amalni ortga qaytarib bo'lmasligi mumkin.</p>
+            <div class="confirm-footer">
+                <button type="button" class="btn-secondary" id="confirmCancelBtn" onclick="closeConfirmModal()">Bekor qilish</button>
+                <button type="button" class="btn-danger" id="confirmOkBtn">Tasdiqlash</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toastMessage" class="toast">Xabar</div>
+
+    <script src="app.js?v=10.0"></script>
+</body>
+</html>
