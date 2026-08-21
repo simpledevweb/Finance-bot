@@ -6,8 +6,8 @@ echo   Finance Money Manager - Mahalliy Baza Serveri
 echo =======================================================
 echo.
 echo Server ishga tushirilmoqda (Python)...
-python server.py
+python local_server.py
 if %errorlevel% neq 0 (
-    py server.py
+    py local_server.py
 )
 pause
