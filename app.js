@@ -61,9 +61,17 @@ function loadDatabase() {
     return JSON.parse(JSON.stringify(defaultDatabase));
 }
 
+function getApiEndpoint() {
+    if (window.location.protocol === 'file:') {
+        return 'http://localhost:3000/api/db';
+    }
+    return '/api/db';
+}
+
 async function syncWithLocalFileServer() {
     try {
-        const res = await fetch('/api/db');
+        const endpoint = getApiEndpoint();
+        const res = await fetch(endpoint);
         if (res.ok) {
             const data = await res.json();
             isLocalServerConnected = true;
@@ -74,7 +82,7 @@ async function syncWithLocalFileServer() {
                 localStorage.setItem(DB_KEY, JSON.stringify(db));
             } else if (db.accounts.length > 0 || db.transactions.length > 0) {
                 // If database.json was empty but browser has existing data, auto-save to database.json!
-                await fetch('/api/db', {
+                await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(db, null, 2)
@@ -109,29 +117,20 @@ async function linkLocalDatabaseFile() {
         });
         if (handle) {
             fileHandle = handle;
-            const file = await fileHandle.getFile();
-            const text = await file.text();
-            if (text.trim()) {
-                try {
-                    const data = JSON.parse(text);
-                    if (data && Array.isArray(data.accounts)) {
-                        db = data;
-                        localStorage.setItem(DB_KEY, JSON.stringify(db));
-                        updateUserSettingsUI();
-                        renderAll();
-                    }
-                } catch (e) {}
-            }
+            // Write current app data directly into database.json immediately!
+            const writable = await fileHandle.createWritable();
+            await writable.write(JSON.stringify(db, null, 2));
+            await writable.close();
+
             const statusPill = document.querySelector('.user-status-pill');
             if (statusPill) {
-                statusPill.textContent = '● ' + fileHandle.name + ' (Bog\'langan)';
+                statusPill.textContent = '● ' + fileHandle.name + ' (Jonli Bog\'langan)';
                 statusPill.style.color = 'var(--success)';
             }
-            showToast('✅ ' + fileHandle.name + ' fayliga to\'g\'ridan-to\'g\'ri ulandi!');
-            saveDatabase();
+            showToast('✅ ' + fileHandle.name + ' yangilandi va jonli ulandi!');
         }
     } catch (err) {
-        console.log('File picker dismissed');
+        console.log('File picker dismissed', err);
     }
 }
 
@@ -141,7 +140,8 @@ function saveDatabase(dataToSave) {
     localStorage.setItem(DB_KEY, JSON.stringify(data));
 
     // 2. Real-time write directly to ./database.json via local server
-    fetch('/api/db', {
+    const endpoint = getApiEndpoint();
+    fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data, null, 2)
