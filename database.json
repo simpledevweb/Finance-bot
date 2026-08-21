@@ -2,28 +2,175 @@
   "settings": {
     "userName": "Alpamis Ibraymov",
     "currency": "UZS",
-    "pinEnabled": false,
+    "pinEnabled": true,
     "pinCode": "1904",
     "privacyHidden": false
   },
-  "accounts": [],
+  "accounts": [
+    {
+      "id": "acc_1787242788103",
+      "name": "Octobank Humo",
+      "balance": 1283361.96,
+      "type": "card",
+      "color": "blue"
+    },
+    {
+      "id": "acc_1787242813362",
+      "name": "Kapitalbank Uzcard",
+      "balance": 1977.1,
+      "type": "card",
+      "color": "amber"
+    },
+    {
+      "id": "acc_1787242827553",
+      "name": "Naqd",
+      "balance": 69000,
+      "type": "cash",
+      "color": "green"
+    },
+    {
+      "id": "acc_1787243970560",
+      "name": "AgroBank Komfort",
+      "balance": 20000000,
+      "type": "deposit",
+      "color": "green",
+      "rate": 18,
+      "months": 13
+    },
+    {
+      "id": "acc_1787244073905",
+      "name": "History",
+      "balance": 5686898.85,
+      "type": "card",
+      "color": "green"
+    }
+  ],
   "categories": {
     "expense": [
-      { "id": "cat_food", "name": "Oziq-ovqat & Bozor", "icon": "🍔" },
-      { "id": "cat_transport", "name": "Transport & Yoqilg'i", "icon": "🚕" },
-      { "id": "cat_shopping", "name": "Xaridlar & Kiyim", "icon": "🛍️" },
-      { "id": "cat_home", "name": "Kommunal & Uy", "icon": "🏠" },
-      { "id": "cat_health", "name": "Salomatlik & Dori", "icon": "💊" },
-      { "id": "cat_fun", "name": "Ko'ngilochar & Kafe", "icon": "🍿" },
-      { "id": "cat_other_exp", "name": "Boshqa xarajatlar", "icon": "📦" }
+      {
+        "id": "cat_food",
+        "name": "Oziq-ovqat & Bozor",
+        "icon": "🍔"
+      },
+      {
+        "id": "cat_transport",
+        "name": "Transport & Yoqilg'i",
+        "icon": "🚕"
+      },
+      {
+        "id": "cat_shopping",
+        "name": "Xaridlar & Kiyim",
+        "icon": "🛍️"
+      },
+      {
+        "id": "cat_home",
+        "name": "Kommunal & Uy",
+        "icon": "🏠"
+      },
+      {
+        "id": "cat_health",
+        "name": "Salomatlik & Dori",
+        "icon": "💊"
+      },
+      {
+        "id": "cat_fun",
+        "name": "Ko'ngilochar & Kafe",
+        "icon": "🍿"
+      },
+      {
+        "id": "cat_other_exp",
+        "name": "Boshqa xarajatlar",
+        "icon": "📦"
+      }
     ],
     "income": [
-      { "id": "cat_salary", "name": "Oylik Maosh", "icon": "💰" },
-      { "id": "cat_business", "name": "Biznes / Savdo", "icon": "📈" },
-      { "id": "cat_cashback", "name": "Keshbek & Sovg'a", "icon": "🎁" },
-      { "id": "cat_deposit_int", "name": "Omonat Foizi", "icon": "🏦" },
-      { "id": "cat_other_inc", "name": "Boshqa daromad", "icon": "💵" }
+      {
+        "id": "cat_salary",
+        "name": "Oylik Maosh",
+        "icon": "💰"
+      },
+      {
+        "id": "cat_business",
+        "name": "Biznes / Savdo",
+        "icon": "📈"
+      },
+      {
+        "id": "cat_cashback",
+        "name": "Keshbek & Sovg'a",
+        "icon": "🎁"
+      },
+      {
+        "id": "cat_deposit_int",
+        "name": "Omonat Foizi",
+        "icon": "🏦"
+      },
+      {
+        "id": "cat_other_inc",
+        "name": "Boshqa daromad",
+        "icon": "💵"
+      }
     ]
   },
-  "transactions": []
+  "transactions": [
+    {
+      "id": "tx_1787244605009",
+      "type": "income",
+      "amount": 3107500,
+      "date": "2026-06-19T16:49:00.000Z",
+      "comment": "Iyul avans",
+      "accountId": "acc_1787244073905",
+      "accountName": "History",
+      "categoryId": "cat_salary"
+    },
+    {
+      "id": "tx_1787244336689",
+      "type": "income",
+      "amount": 2579398.85,
+      "date": "2026-06-05T16:41:00.000Z",
+      "comment": "May Rachot",
+      "accountId": "acc_1787244073905",
+      "accountName": "History",
+      "categoryId": "cat_salary"
+    },
+    {
+      "id": "tx_1787243908144",
+      "type": "expense",
+      "amount": 33500,
+      "date": "2026-08-20T16:38:00.000Z",
+      "comment": "Egg, Milk, IceCream",
+      "accountId": "acc_1787242788103",
+      "accountName": "Octobank Humo",
+      "categoryId": "cat_food"
+    },
+    {
+      "id": "tx_1787243886213",
+      "type": "expense",
+      "amount": 50500,
+      "date": "2026-08-20T16:37:00.000Z",
+      "comment": "Prayez",
+      "accountId": "acc_1787242788103",
+      "accountName": "Octobank Humo",
+      "categoryId": "cat_transport"
+    },
+    {
+      "id": "tx_1787243869165",
+      "type": "expense",
+      "amount": 808000,
+      "date": "2026-08-20T16:37:00.000Z",
+      "comment": "Salamat Toy | Raxmet|Erkin",
+      "accountId": "acc_1787242788103",
+      "accountName": "Octobank Humo",
+      "categoryId": "cat_other_exp"
+    },
+    {
+      "id": "tx_1787242993119",
+      "type": "income",
+      "amount": 2175300,
+      "date": "2026-08-20T16:21:00.000Z",
+      "comment": "Avans Avgust",
+      "accountId": "acc_1787242788103",
+      "accountName": "Octobank Humo",
+      "categoryId": "cat_salary"
+    }
+  ]
 }

@@ -96,12 +96,51 @@ async function syncWithLocalFileServer() {
     }
 }
 
+let fileHandle = null;
+
+async function linkLocalDatabaseFile() {
+    if (!('showOpenFilePicker' in window)) {
+        showToast('start.bat fayli orqali ishga tushiring');
+        return;
+    }
+    try {
+        const [handle] = await window.showOpenFilePicker({
+            types: [{ description: 'JSON Files', accept: { 'application/json': ['.json'] } }]
+        });
+        if (handle) {
+            fileHandle = handle;
+            const file = await fileHandle.getFile();
+            const text = await file.text();
+            if (text.trim()) {
+                try {
+                    const data = JSON.parse(text);
+                    if (data && Array.isArray(data.accounts)) {
+                        db = data;
+                        localStorage.setItem(DB_KEY, JSON.stringify(db));
+                        updateUserSettingsUI();
+                        renderAll();
+                    }
+                } catch (e) {}
+            }
+            const statusPill = document.querySelector('.user-status-pill');
+            if (statusPill) {
+                statusPill.textContent = '● ' + fileHandle.name + ' (Bog\'langan)';
+                statusPill.style.color = 'var(--success)';
+            }
+            showToast('✅ ' + fileHandle.name + ' fayliga to\'g\'ridan-to\'g\'ri ulandi!');
+            saveDatabase();
+        }
+    } catch (err) {
+        console.log('File picker dismissed');
+    }
+}
+
 function saveDatabase(dataToSave) {
     const data = dataToSave || db;
     // 1. Save to browser cache
     localStorage.setItem(DB_KEY, JSON.stringify(data));
 
-    // 2. Real-time write directly to ./database.json in this folder
+    // 2. Real-time write directly to ./database.json via local server
     fetch('/api/db', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -116,6 +155,13 @@ function saveDatabase(dataToSave) {
             }
         }
     }).catch(() => {});
+
+    // 3. Real-time write directly to connected file handle (File System API)
+    if (fileHandle) {
+        fileHandle.createWritable().then(writable => {
+            writable.write(JSON.stringify(data, null, 2)).then(() => writable.close());
+        }).catch(err => console.error('Error writing fileHandle:', err));
+    }
 }
 
 // ==================== FORMATTERS ====================
