@@ -623,10 +623,10 @@
                                 <div class="backup-box">
                                     <h4>📤 Zaxiradan Qayta Tiklash (Import JSON)</h4>
                                     <p>Oldin saqlangan `.json` faylini tanlang va bazani to'liq tiklang.</p>
-                                    <label class="btn-secondary btn-file-upload">
+                                    <button class="btn-secondary" onclick="triggerImportJSON()">
                                         <span>📁</span> JSON Faylni Tanlash
-                                        <input type="file" id="importJsonInput" accept=".json" onchange="importDataJSON(event)" style="display: none;">
-                                    </label>
+                                    </button>
+                                    <input type="file" id="importJsonInput" accept=".json,application/json" onchange="importDataJSON(event)" style="display: none;">
                                 </div>
 
                                 <div class="backup-box danger">

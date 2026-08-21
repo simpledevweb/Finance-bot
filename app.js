@@ -1455,37 +1455,67 @@ function changeCurrency(curr) {
 
 // ==================== EXPORT / IMPORT JSON & CSV ====================
 function exportDataJSON() {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
-    const dlAnchor = document.createElement('a');
-    const dateStr = new Date().toISOString().slice(0, 10);
-    dlAnchor.setAttribute("href", dataStr);
-    dlAnchor.setAttribute("download", `finance_database_backup_${dateStr}.json`);
-    document.body.appendChild(dlAnchor);
-    dlAnchor.click();
-    dlAnchor.remove();
-    showToast('JSON Baza yuklab olindi!');
+    try {
+        const dataStr = JSON.stringify(db, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const dlAnchor = document.createElement('a');
+        const dateStr = new Date().toISOString().slice(0, 10);
+        dlAnchor.href = url;
+        dlAnchor.download = `finance_database_backup_${dateStr}.json`;
+        document.body.appendChild(dlAnchor);
+        dlAnchor.click();
+        setTimeout(() => {
+            dlAnchor.remove();
+            URL.revokeObjectURL(url);
+        }, 500);
+        showToast('JSON Baza muvaffaqiyatli yuklab olindi!');
+    } catch (err) {
+        console.error('Export error:', err);
+        showToast('Eksport qilishda xatolik yuz berdi');
+    }
+}
+
+function triggerImportJSON() {
+    const input = document.getElementById('importJsonInput');
+    if (input) {
+        input.value = '';
+        input.click();
+    }
 }
 
 function importDataJSON(event) {
-    const file = event.target.files[0];
+    const file = event.target.files && event.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = function(e) {
         try {
             const imported = JSON.parse(e.target.result);
-            if (imported && Array.isArray(imported.accounts) && Array.isArray(imported.transactions)) {
-                db = imported;
+            if (imported && (Array.isArray(imported.accounts) || Array.isArray(imported.transactions))) {
+                db = {
+                    settings: imported.settings || db.settings,
+                    accounts: Array.isArray(imported.accounts) ? imported.accounts : [],
+                    categories: imported.categories || db.categories,
+                    transactions: Array.isArray(imported.transactions) ? imported.transactions : []
+                };
                 saveDatabase();
                 updateUserSettingsUI();
                 renderAll();
-                showToast('Ma\'lumotlar bazasi qayta tiklandi!');
+                showToast('✅ Ma\'lumotlar bazasi muvaffaqiyatli tiklandi!');
             } else {
                 showToast('Xatolik: Noto\'g\'ri JSON fayl formati!');
             }
         } catch (err) {
+            console.error('Import parse error:', err);
             showToast('JSON faylni o\'qishda xatolik yuz berdi!');
+        } finally {
+            event.target.value = '';
         }
+    };
+    reader.onerror = function() {
+        showToast('Faylni ochishda xatolik yuz berdi');
+        event.target.value = '';
     };
     reader.readAsText(file);
 }
@@ -1496,29 +1526,39 @@ function exportTransactionsCSV() {
         return;
     }
 
-    let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-    csvContent += "ID,Sana,Turi,Summa,Valyuta,Hisob,Kategoriya,Izoh\n";
+    try {
+        let csvContent = "\uFEFF";
+        csvContent += "ID,Sana,Turi,Summa,Valyuta,Hisob,Kategoriya,Izoh\n";
 
-    db.transactions.forEach(tx => {
-        const date = new Date(tx.date).toLocaleString('uz-UZ');
-        const type = tx.type;
-        const amount = tx.amount;
-        const curr = db.settings.currency;
-        const accName = `"${getAccountDisplayName(tx.accountId || tx.fromAccountId, tx.accountName || tx.fromAccountName)}"`
-        const cat = db.categories.expense.concat(db.categories.income).find(c => c.id === tx.categoryId);
-        const catName = cat ? `"${cat.name}"` : '""';
-        const comment = `"${(tx.comment || '').replace(/"/g, '""')}"`;
+        db.transactions.forEach(tx => {
+            const date = new Date(tx.date).toLocaleString('uz-UZ');
+            const type = tx.type;
+            const amount = tx.amount;
+            const curr = db.settings.currency;
+            const accName = `"${getAccountDisplayName(tx.accountId || tx.fromAccountId, tx.accountName || tx.fromAccountName)}"`;
+            const cat = db.categories.expense.concat(db.categories.income).find(c => c.id === tx.categoryId);
+            const catName = cat ? `"${cat.name}"` : '""';
+            const comment = `"${(tx.comment || '').replace(/"/g, '""')}"`;
 
-        csvContent += `${tx.id},${date},${type},${amount},${curr},${accName},${catName},${comment}\n`;
-    });
+            csvContent += `${tx.id},${date},${type},${amount},${curr},${accName},${catName},${comment}\n`;
+        });
 
-    const dlAnchor = document.createElement('a');
-    dlAnchor.setAttribute("href", encodeURI(csvContent));
-    dlAnchor.setAttribute("download", `finance_transactions_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(dlAnchor);
-    dlAnchor.click();
-    dlAnchor.remove();
-    showToast('CSV fayl yuklab olindi!');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const dlAnchor = document.createElement('a');
+        const dateStr = new Date().toISOString().slice(0, 10);
+        dlAnchor.href = url;
+        dlAnchor.download = `finance_transactions_${dateStr}.csv`;
+        document.body.appendChild(dlAnchor);
+        dlAnchor.click();
+        setTimeout(() => {
+            dlAnchor.remove();
+            URL.revokeObjectURL(url);
+        }, 500);
+        showToast('CSV fayl yuklab olindi!');
+    } catch (err) {
+        console.error('CSV export error:', err);
+    }
 }
 
 function resetDatabase() {
