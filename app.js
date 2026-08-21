@@ -46,6 +46,7 @@ let analyticsBarChart = null;
 let analyticsPieChart = null;
 let currentAccFilter = 'all';
 let onConfirmCallbackFunction = null;
+let isLocalServerConnected = false;
 
 function loadDatabase() {
     try {
@@ -60,9 +61,52 @@ function loadDatabase() {
     return JSON.parse(JSON.stringify(defaultDatabase));
 }
 
+async function syncWithLocalFileServer() {
+    try {
+        const res = await fetch('/api/db');
+        if (res.ok) {
+            const data = await res.json();
+            if (data && Array.isArray(data.accounts)) {
+                db = data;
+                localStorage.setItem(DB_KEY, JSON.stringify(db));
+                isLocalServerConnected = true;
+                const statusPill = document.querySelector('.user-status-pill');
+                if (statusPill) {
+                    statusPill.textContent = '● database.json (Folderda Faol)';
+                    statusPill.style.color = 'var(--success)';
+                }
+                updateUserSettingsUI();
+                renderAll();
+                console.log('✅ Synchronized with local database.json');
+            }
+        }
+    } catch (err) {
+        // Running static or on Netlify without local Node server
+        console.log('Running standalone (LocalStorage mode)');
+    }
+}
+
 function saveDatabase(dataToSave) {
     const data = dataToSave || db;
+    // 1. Save to browser localStorage
     localStorage.setItem(DB_KEY, JSON.stringify(data));
+
+    // 2. Auto-sync to local ./database.json in this folder if server is active
+    fetch('/api/db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data, null, 2)
+    }).then(res => {
+        if (res.ok && !isLocalServerConnected) {
+            isLocalServerConnected = true;
+            const statusPill = document.querySelector('.user-status-pill');
+            if (statusPill) {
+                statusPill.textContent = '● database.json (Folderda Faol)';
+            }
+        }
+    }).catch(() => {
+        // Silently continue in browser-only mode
+    });
 }
 
 // ==================== FORMATTERS ====================
@@ -149,6 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUserSettingsUI();
     renderAll();
     resetTxDateInput();
+    syncWithLocalFileServer();
 });
 
 function updateUserSettingsUI() {

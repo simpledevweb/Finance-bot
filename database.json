@@ -1,0 +1,29 @@
+{
+  "settings": {
+    "userName": "Alpamis Ibraymov",
+    "currency": "UZS",
+    "pinEnabled": false,
+    "pinCode": "1904",
+    "privacyHidden": false
+  },
+  "accounts": [],
+  "categories": {
+    "expense": [
+      { "id": "cat_food", "name": "Oziq-ovqat & Bozor", "icon": "🍔" },
+      { "id": "cat_transport", "name": "Transport & Yoqilg'i", "icon": "🚕" },
+      { "id": "cat_shopping", "name": "Xaridlar & Kiyim", "icon": "🛍️" },
+      { "id": "cat_home", "name": "Kommunal & Uy", "icon": "🏠" },
+      { "id": "cat_health", "name": "Salomatlik & Dori", "icon": "💊" },
+      { "id": "cat_fun", "name": "Ko'ngilochar & Kafe", "icon": "🍿" },
+      { "id": "cat_other_exp", "name": "Boshqa xarajatlar", "icon": "📦" }
+    ],
+    "income": [
+      { "id": "cat_salary", "name": "Oylik Maosh", "icon": "💰" },
+      { "id": "cat_business", "name": "Biznes / Savdo", "icon": "📈" },
+      { "id": "cat_cashback", "name": "Keshbek & Sovg'a", "icon": "🎁" },
+      { "id": "cat_deposit_int", "name": "Omonat Foizi", "icon": "🏦" },
+      { "id": "cat_other_inc", "name": "Boshqa daromad", "icon": "💵" }
+    ]
+  },
+  "transactions": []
+}
