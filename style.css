@@ -856,6 +856,51 @@ body.web-dashboard-body {
     margin-top: 10px;
 }
 
+.account-web-card.is-hidden {
+    border-style: dashed;
+    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(15, 23, 42, 0.4);
+}
+
+.hidden-acc-badge {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: var(--warning);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-eye-toggle {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 15px;
+    transition: var(--transition);
+}
+
+.btn-eye-toggle:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--primary);
+    transform: scale(1.1);
+}
+
+.btn-eye-toggle.hidden {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
 .acc-web-card-footer {
     display: flex;
     justify-content: space-between;

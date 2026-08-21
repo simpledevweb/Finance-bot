@@ -320,11 +320,12 @@ function renderAll() {
 }
 
 function renderDashboard() {
-    // 1. Metric Cards
+    // 1. Metric Cards (Excludes hidden accounts)
     let totalNet = 0;
     let totalDeposit = 0;
 
     db.accounts.forEach(acc => {
+        if (acc.isHidden) return; // Exclude hidden accounts from total Net Worth
         const bal = Number(acc.balance) || 0;
         totalNet += bal;
         if (acc.type === 'deposit') {
@@ -351,22 +352,25 @@ function renderDashboard() {
     document.getElementById('monthIncomeText').textContent = '+' + formatMoney(monthInc, true);
     document.getElementById('monthExpenseText').textContent = '-' + formatMoney(monthExp, true);
     document.getElementById('totalDepositBalance').textContent = formatMoney(totalDeposit, true);
-    document.getElementById('badgeAccountsCount').textContent = db.accounts.length;
+    
+    // Count visible vs total
+    const visibleAccounts = db.accounts.filter(a => !a.isHidden);
+    document.getElementById('badgeAccountsCount').textContent = visibleAccounts.length;
 
-    // 2. Dashboard Side Accounts List
+    // 2. Dashboard Side Accounts List (Shows only visible accounts)
     const sideList = document.getElementById('dashboardAccountsList');
     sideList.innerHTML = '';
 
-    if (db.accounts.length === 0) {
+    if (visibleAccounts.length === 0) {
         sideList.innerHTML = `
             <div style="text-align:center; padding:24px 10px; color:var(--text-muted);">
                 <div style="font-size:32px; margin-bottom:8px;">💳</div>
-                <div>Hisoblar mavjud emas</div>
-                <button class="btn-primary btn-primary-sm" style="margin-top:10px;" onclick="openAddAccountModal()">+ Yangi Hisob Qo'shish</button>
+                <div>${db.accounts.length > 0 ? 'Barcha hisoblar yashirilgan' : 'Hisoblar mavjud emas'}</div>
+                <button class="btn-primary btn-primary-sm" style="margin-top:10px;" onclick="switchTab('tab-accounts')">Hisoblarni Ko'rish</button>
             </div>
         `;
     } else {
-        db.accounts.forEach(acc => {
+        visibleAccounts.forEach(acc => {
             const item = document.createElement('div');
             item.className = 'acc-side-item';
             item.onclick = () => switchTab('tab-accounts');
@@ -527,7 +531,7 @@ function renderAccounts() {
 
     filtered.forEach(acc => {
         const card = document.createElement('div');
-        card.className = 'account-web-card';
+        card.className = 'account-web-card' + (acc.isHidden ? ' is-hidden' : '');
 
         const icon = acc.type === 'card' ? '💳' : (acc.type === 'cash' ? '💵' : '🏦');
         const colorClass = acc.color || 'blue';
@@ -538,7 +542,13 @@ function renderAccounts() {
             <div>
                 <div class="acc-web-top">
                     <div class="acc-icon-square ${colorClass}">${icon}</div>
-                    <span class="table-type-pill ${acc.type}">${typeName}</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        ${acc.isHidden ? '<span class="hidden-acc-badge" title="Dashboarddan yashirilgan">🙈 Yashirin</span>' : ''}
+                        <span class="table-type-pill ${acc.type}">${typeName}</span>
+                        <button type="button" class="btn-eye-toggle ${acc.isHidden ? 'hidden' : 'visible'}" onclick="toggleAccountVisibility('${acc.id}')" title="${acc.isHidden ? 'Dashboardga qo\'shish (Ko\'rinadigan qilish)' : 'Dashboarddan yashirish (Umumiyga qo\'shilmaydi)'}">
+                            ${acc.isHidden ? '🙈' : '👁️'}
+                        </button>
+                    </div>
                 </div>
                 <div class="acc-web-card-name">${acc.name}</div>
                 <div class="acc-web-card-type">${metaExtra}</div>
@@ -555,6 +565,17 @@ function renderAccounts() {
     });
 }
 
+function toggleAccountVisibility(id) {
+    const acc = db.accounts.find(a => a.id === id);
+    if (!acc) return;
+    acc.isHidden = !acc.isHidden;
+    saveDatabase();
+    renderAll();
+    showToast(acc.isHidden 
+        ? `🙈 "${acc.name}" Dashboarddan va umumiy hisobdan yashirildi` 
+        : `👁️ "${acc.name}" Dashboardga qo'shildi va umumiy balansga kiritildi`);
+}
+
 function filterAccountView(type, btnEl) {
     currentAccFilter = type;
     document.querySelectorAll('.acc-filter-tab').forEach(b => b.classList.remove('active'));
@@ -569,6 +590,8 @@ function openAddAccountModal() {
     document.getElementById('accBalance').value = '';
     document.getElementById('accType').value = 'card';
     document.getElementById('depositExtraFields').style.display = 'none';
+    const hideCheck = document.getElementById('accIsHidden');
+    if (hideCheck) hideCheck.checked = false;
     document.getElementById('accountModal').style.display = 'flex';
 }
 
@@ -589,6 +612,9 @@ function editAccount(id) {
     } else {
         document.getElementById('depositExtraFields').style.display = 'none';
     }
+
+    const hideCheck = document.getElementById('accIsHidden');
+    if (hideCheck) hideCheck.checked = !!acc.isHidden;
 
     const radio = document.querySelector(`input[name="accColor"][value="${acc.color || 'blue'}"]`);
     if (radio) radio.checked = true;
@@ -614,6 +640,7 @@ function saveAccount(e) {
     const color = document.querySelector('input[name="accColor"]:checked')?.value || 'blue';
     const rate = parseFloat(document.getElementById('accDepositRate').value) || 0;
     const months = parseInt(document.getElementById('accDepositMonths').value) || 0;
+    const isHidden = document.getElementById('accIsHidden')?.checked || false;
 
     if (!name) {
         showToast('Iltimos, hisob nomini kiriting');
@@ -627,6 +654,7 @@ function saveAccount(e) {
             acc.balance = balance;
             acc.type = type;
             acc.color = color;
+            acc.isHidden = isHidden;
             if (type === 'deposit') {
                 acc.rate = rate;
                 acc.months = months;
@@ -646,6 +674,7 @@ function saveAccount(e) {
             balance,
             type,
             color,
+            isHidden,
             rate: type === 'deposit' ? rate : undefined,
             months: type === 'deposit' ? months : undefined
         };

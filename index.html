@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f172a">
-    <link rel="stylesheet" href="style.css?v=12.0">
+    <link rel="stylesheet" href="style.css?v=13.0">
 </head>
 <body class="web-dashboard-body">
 
@@ -815,6 +815,16 @@
                     </div>
                 </div>
 
+                <div class="form-group" style="margin-top: 14px; padding: 12px; background: rgba(255,255,255,0.03); border: 1px dashed var(--border-color); border-radius: var(--radius-md);">
+                    <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; margin-bottom: 0;">
+                        <div>
+                            <strong>🙈 Dashboarddan yashirish</strong>
+                            <small class="text-muted d-block">Dashboarddagi hisoblar ro'yxatidan va umumiy boylikdan chiqarib tashlash</small>
+                        </div>
+                        <input type="checkbox" id="accIsHidden" style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--primary);">
+                    </label>
+                </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" onclick="closeAccountModal()">Bekor qilish</button>
                     <button type="submit" class="btn-primary">Saqlash</button>
@@ -839,6 +849,6 @@
     <!-- Notification Toast -->
     <div id="toastMessage" class="toast">Xabar</div>
 
-    <script src="app.js?v=12.0"></script>
+    <script src="app.js?v=13.0"></script>
 </body>
 </html>
