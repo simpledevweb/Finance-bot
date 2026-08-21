@@ -36,13 +36,6 @@
       "color": "green",
       "rate": 18,
       "months": 13
-    },
-    {
-      "id": "acc_1787244073905",
-      "name": "History",
-      "balance": 5686898.85,
-      "type": "card",
-      "color": "green"
     }
   ],
   "categories": {
